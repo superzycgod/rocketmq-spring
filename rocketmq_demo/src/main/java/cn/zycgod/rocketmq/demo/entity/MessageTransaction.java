@@ -12,6 +12,11 @@ import javax.persistence.Table;
 import lombok.Data;
 import lombok.ToString;
 
+/**
+ * 事务消息表
+ * @author zhangyanchao
+ *
+ */
 @Data
 @Entity
 @Table(name = "t_message_transaction")

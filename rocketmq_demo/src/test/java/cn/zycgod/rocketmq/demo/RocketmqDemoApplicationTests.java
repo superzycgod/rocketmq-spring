@@ -1,45 +1,76 @@
 package cn.zycgod.rocketmq.demo;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import javax.annotation.Resource;
-
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import cn.zycgod.rocketmq.demo.msg.DemoMsg;
+import lombok.extern.slf4j.Slf4j;
+
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class RocketmqDemoApplicationTests {
 	
-	@Resource
-    private RocketMQTemplate rocketMQTemplate;
+	@Autowired
+	private GenericApplicationContext ac;
 	
-	private static int msgId = 0;
 	
 	@Test
 	public void contextLoads() {
+		// ac.registerBean(TestBean.class, this::getTestBean);
+		// TestBean bean = ac.getBean(TestBean.class);
+		// bean.start();
+	}
+	
+	public TestBean getTestBean() {
+		return new TestBean();
+	}
+	
+	@Slf4j
+	@Configuration
+	public static class TestBean implements SmartLifecycle{
 		
-		ExecutorService executorService = Executors.newCachedThreadPool();
-		executorService.execute(new Runnable() {
-			@Override
-			public void run() {
-				rocketMQTemplate.convertAndSend("demo-topic-1", new DemoMsg(msgId++, "测试消息"));
-			}
-		});
+		private volatile boolean flag = false;
 		
-		executorService.execute(new Runnable() {
-			@Override
-			public void run() {
-				rocketMQTemplate.sendMessageInTransaction("demo", "demo-topic-1", MessageBuilder.withPayload(new DemoMsg(msgId++, "事务消息测试")).build(), null);
-			}
-		});
+		public TestBean() {
+			super();
+		}
+		
+		@Override
+		public boolean isAutoStartup() {
+			log.info("TestBean isAutoStartup");
+			return SmartLifecycle.super.isAutoStartup();
+		}
+		
+		@Override
+		public void stop(Runnable callback) {
+			log.info("TestBean stop callback");
+			SmartLifecycle.super.stop(callback);
+		}
+
+		@Override
+		public void start() {
+			log.info("TestBean Start");
+			flag = true;
+		}
+
+		@Override
+		public void stop() {
+			log.info("TestBean stop");
+			flag = false;
+		}
+
+		@Override
+		public boolean isRunning() {
+			log.info("TestBean isRunning");
+			return flag;
+		}
 		
 	}
 

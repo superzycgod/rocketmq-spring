@@ -2,10 +2,10 @@ package cn.zycgod.rocketmq.demo.service.impl;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
 
+import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -18,8 +18,6 @@ import cn.zycgod.rocketmq.demo.service.DemoService;
 
 @Service
 public class DemoServiceImpl implements DemoService{
-	
-	private static Map<Integer, DemoMsg> transactionMap = new ConcurrentHashMap<Integer, DemoMsg>();
 	
 	@Resource
     private RocketMQTemplate rocketMQTemplate;
@@ -35,7 +33,11 @@ public class DemoServiceImpl implements DemoService{
 		
 		// create rocket msg
 		Map<String, Object> headers = new HashMap<>();
-		headers.put("bid", msg.getMsgId().toString());
+		/*
+		 * 最佳实现：
+		 * 每个消息在业务层面的唯一标识码要设置到keys字段，方便将来定位消息丢失问题。服务器会为每个消息创建索引（哈希索引），应用可以通过topic、key来查询这条消息内容，以及消息被谁消费。由于是哈希索引，请务必保证key尽可能唯一，这样可以避免潜在的哈希冲突。
+		 */
+		headers.put(MessageConst.PROPERTY_KEYS, msg.getMsgId().toString());
 		Message<DemoMsg> rocketMsg = MessageBuilder.createMessage(msg, new MessageHeaders(headers));
 		
 		// 发送事务消息
@@ -44,11 +46,6 @@ public class DemoServiceImpl implements DemoService{
 		if(msg.getMsgId() <= 0) {
 			throw new RuntimeException("消息ID验证失败");
 		}
-	}
-
-	@Override
-	public DemoMsg queryMsg(Integer msgId) {
-		return transactionMap.get(msgId);
 	}
 
 }

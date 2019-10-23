@@ -8,6 +8,4 @@ public interface DemoService {
 	
 	void sendTransactionMsg(DemoMsg msg);
 	
-	DemoMsg queryMsg(Integer msgId);
-	
 }

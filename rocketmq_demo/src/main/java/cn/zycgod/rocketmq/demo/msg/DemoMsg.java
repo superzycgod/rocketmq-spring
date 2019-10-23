@@ -36,10 +36,6 @@ public class DemoMsg implements Serializable{
 		this.text = text;
 	}
 
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
-
 	@Override
 	public String toString() {
 		return "DemoMsg [msgId=" + msgId + ", text=" + text + "]";
